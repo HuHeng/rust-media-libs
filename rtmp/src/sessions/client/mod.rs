@@ -944,7 +944,7 @@ impl ClientSession {
     }
 
     fn handle_ping_response(&mut self, timestamp: Option<RtmpTimestamp>) -> ClientResult {
-        let timestamp = timestamp.unwrap_or(RtmpTimestamp::new(0));
+        let timestamp = timestamp.unwrap_or_else(|| RtmpTimestamp::new(0));
         let event = ClientSessionEvent::PingResponseReceived { timestamp };
         Ok(vec![ClientSessionResult::RaisedEvent(event)])
     }

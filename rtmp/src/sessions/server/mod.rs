@@ -442,21 +442,13 @@ impl ServerSession {
         };
 
         let app_name = match properties.remove("app") {
-            Some(value) => match value {
-                Amf0Value::Utf8String(mut app) => {
-                    if app.ends_with('/') {
-                        app.pop();
-                    }
-
-                    app
+            Some(Amf0Value::Utf8String(mut app)) => {
+                if app.ends_with('/') {
+                    app.pop();
                 }
-                _ => {
-                    return Err(ServerSessionError {
-                        kind: ServerSessionErrorKind::NoAppNameForConnectionRequest,
-                    })
-                }
-            },
-            None => {
+                app
+            }
+            _ => {
                 return Err(ServerSessionError {
                     kind: ServerSessionErrorKind::NoAppNameForConnectionRequest,
                 })
@@ -464,11 +456,8 @@ impl ServerSession {
         };
 
         self.object_encoding = match properties.remove("objectEncoding") {
-            Some(value) => match value {
-                Amf0Value::Number(number) => number,
-                _ => 0.0,
-            },
-            None => 0.0,
+            Some(Amf0Value::Number(number)) => number,
+            _ => 0.0,
         };
 
         let request = OutstandingRequest::ConnectionRequest {
@@ -789,9 +778,9 @@ impl ServerSession {
         let start_at = if !arguments.is_empty() {
             match arguments.remove(0) {
                 Amf0Value::Number(x) => {
-                    if x == -2.0 {
+                    if (x - -2.0).abs() < f64::EPSILON {
                         PlayStartValue::LiveOrRecorded
-                    } else if x == -1.0 {
+                    } else if (x - -1.0).abs() < f64::EPSILON {
                         PlayStartValue::LiveOnly
                     } else if x >= 0.0 {
                         PlayStartValue::StartTimeInSeconds(x as u32)
@@ -912,10 +901,9 @@ impl ServerSession {
 
         let mut metadata = StreamMetadata::new();
         let object = data.remove(1);
-        let properties_option = object.get_object_properties();
-        match properties_option {
-            Some(properties) => metadata.apply_metadata_values(properties),
-            _ => (),
+
+        if let Some(properties) = object.get_object_properties() {
+            metadata.apply_metadata_values(properties);
         }
 
         let event = ServerSessionEvent::StreamMetadataChanged {
@@ -1005,7 +993,7 @@ impl ServerSession {
             }
 
             UserControlEventType::PingResponse => {
-                let timestamp = timestamp.unwrap_or(RtmpTimestamp::new(0));
+                let timestamp = timestamp.unwrap_or_else(|| RtmpTimestamp::new(0));
                 let event = ServerSessionEvent::PingResponseReceived { timestamp };
                 Ok(vec![ServerSessionResult::RaisedEvent(event)])
             }

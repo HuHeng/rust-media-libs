@@ -302,11 +302,9 @@ impl Handshake {
         let received_packet_1: [u8; RTMP_PACKET_SIZE];
         {
             let mut handshake = [0_u8; RTMP_PACKET_SIZE];
-            let mut index = 0;
 
-            for x in self.input_buffer.drain(..RTMP_PACKET_SIZE) {
+            for (index, x) in self.input_buffer.drain(..RTMP_PACKET_SIZE).enumerate() {
                 handshake[index] = x;
-                index += 1;
             }
 
             received_packet_1 = handshake;
@@ -356,9 +354,7 @@ impl Handshake {
         let hmac2 = calc_hmac(&output_packet[..P2_SIG_START_INDEX], &hmac1);
 
         // the hmac2 signature is written to the end of the p2 packet
-        for index in 0..SHA256_DIGEST_LENGTH {
-            output_packet[P2_SIG_START_INDEX + index] = hmac2[index];
-        }
+        output_packet[P2_SIG_START_INDEX..(P2_SIG_START_INDEX + SHA256_DIGEST_LENGTH)].clone_from_slice(&hmac2[..SHA256_DIGEST_LENGTH]);
 
         self.current_stage = Stage::WaitingForPacket2;
         Ok(HandshakeProcessResult::InProgress {
@@ -384,7 +380,7 @@ impl Handshake {
 
         // If the peer sent back a p2 that is an exact copy of our p1, accept it as that mean's it
         // is the old style handshake
-        if &self.sent_p1[..] == &received_packet_2[..] {
+        if self.sent_p1[..] == received_packet_2[..] {
             self.current_stage = Stage::Complete;
             let remaining_bytes = self.input_buffer.drain(..).collect();
             return Ok(HandshakeProcessResult::Completed {
@@ -471,9 +467,7 @@ fn get_message_parts(
     let (raw_digest, part2) = rest.split_at(SHA256_DIGEST_LENGTH);
 
     let mut digest = [0_u8; SHA256_DIGEST_LENGTH];
-    for index in 0..SHA256_DIGEST_LENGTH {
-        digest[index] = raw_digest[index];
-    }
+    digest[..SHA256_DIGEST_LENGTH].clone_from_slice(&raw_digest[..SHA256_DIGEST_LENGTH]);
 
     Ok(MessageParts {
         before_digest: Vec::from(part1),
@@ -483,15 +477,7 @@ fn get_message_parts(
 }
 
 fn calc_hmac_from_parts(part1: &[u8], part2: &[u8], key: &[u8]) -> [u8; SHA256_DIGEST_LENGTH] {
-    let mut inputs = Vec::with_capacity(part1.len() + part2.len());
-    for index in 0..part1.len() {
-        inputs.push(part1[index]);
-    }
-
-    for index in 0..part2.len() {
-        inputs.push(part2[index]);
-    }
-
+    let inputs = [part1, part2].concat();
     calc_hmac(&inputs, key)
 }
 
@@ -519,9 +505,9 @@ fn calc_hmac(input: &[u8], key: &[u8]) -> [u8; SHA256_DIGEST_LENGTH] {
 
 fn fill_with_random_data(buffer: &mut [u8]) {
     let mut rng = rand::thread_rng();
-    for x in 0..buffer.len() {
-        let value = rng.gen();
-        buffer[x] = value;
+    //for x in 0..buffer.len() {
+    for x in buffer.iter_mut() {
+        *x = rng.gen();
     }
 }
 

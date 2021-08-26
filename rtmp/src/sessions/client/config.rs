@@ -8,6 +8,12 @@ pub struct ClientSessionConfig {
     pub tc_url: Option<String>,
 }
 
+impl Default for ClientSessionConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ClientSessionConfig {
     /// Creates a new configuration object with default values
     pub fn new() -> ClientSessionConfig {

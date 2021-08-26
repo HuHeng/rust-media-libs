@@ -48,6 +48,12 @@ enum ParseStageResult {
     NotEnoughBytes,
 }
 
+impl Default for ChunkDeserializer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ChunkDeserializer {
     /// Create a new `ChunkDeserializer` with its initial properties.
     ///
