@@ -390,12 +390,12 @@ impl ServerSession {
         let epoch = self.get_epoch();
         let message = RtmpMessage::UserControl {
             event_type: UserControlEventType::PingRequest,
-            timestamp: Some(epoch.clone()),
+            timestamp: Some(epoch),
             buffer_length: None,
             stream_id: None,
         };
 
-        let payload = message.into_message_payload(epoch.clone(), 0)?;
+        let payload = message.into_message_payload(epoch, 0)?;
         let packet = self.serializer.serialize(&payload, false, false)?;
         Ok((packet, epoch))
     }
@@ -503,7 +503,7 @@ impl ServerSession {
         let app_name = match properties.remove("app") {
             Some(value) => match value {
                 Amf0Value::Utf8String(mut app) => {
-                    if app.ends_with("/") {
+                    if app.ends_with('/') {
                         app.pop();
                     }
 
@@ -528,11 +528,11 @@ impl ServerSession {
         };
 
         let request_number = self.next_request_number;
-        self.next_request_number = self.next_request_number + 1;
+        self.next_request_number += 1;
         self.outstanding_requests.insert(request_number, request);
 
         let event = ServerSessionEvent::ConnectionRequested {
-            app_name: app_name,
+            app_name,
             request_id: request_number,
         };
 
@@ -553,7 +553,7 @@ impl ServerSession {
         };
 
         // First argument should be the stream id to close
-        if arguments.len() == 0 {
+        if arguments.is_empty() {
             return Ok(Vec::new());
         }
 
@@ -606,7 +606,7 @@ impl ServerSession {
         transaction_id: f64,
     ) -> Result<Vec<ServerSessionResult>, ServerSessionError> {
         let new_stream_id = self.next_stream_id;
-        self.next_stream_id = self.next_stream_id + 1;
+        self.next_stream_id += 1;
 
         let new_stream = ActiveStream {
             current_state: StreamState::Created,
@@ -638,7 +638,7 @@ impl ServerSession {
             None => return Ok(Vec::new()),
         };
 
-        if arguments.len() == 0 {
+        if arguments.is_empty() {
             return Ok(Vec::new());
         }
 
@@ -772,7 +772,7 @@ impl ServerSession {
         };
 
         let request_number = self.next_request_number;
-        self.next_request_number = self.next_request_number + 1;
+        self.next_request_number += 1;
         self.outstanding_requests.insert(request_number, request);
 
         let event = ServerSessionEvent::PublishStreamRequested {
@@ -791,7 +791,7 @@ impl ServerSession {
         transaction_id: f64,
         mut arguments: Vec<Amf0Value>,
     ) -> Result<Vec<ServerSessionResult>, ServerSessionError> {
-        if arguments.len() < 1 {
+        if arguments.is_empty() {
             let packet = self.create_error_packet(
                 "NetStream.Play.Start",
                 "Invalid play arguments",
@@ -837,7 +837,7 @@ impl ServerSession {
             }
         };
 
-        let start_at = if arguments.len() >= 1 {
+        let start_at = if !arguments.is_empty() {
             match arguments.remove(0) {
                 Amf0Value::Number(x) => {
                     if x == -2.0 {
@@ -857,7 +857,7 @@ impl ServerSession {
             PlayStartValue::LiveOrRecorded
         };
 
-        let duration = if arguments.len() >= 1 {
+        let duration = if !arguments.is_empty() {
             match arguments.remove(0) {
                 Amf0Value::Number(x) => {
                     if x >= 0.0 {
@@ -873,7 +873,7 @@ impl ServerSession {
             None
         };
 
-        let reset = if arguments.len() >= 1 {
+        let reset = if !arguments.is_empty() {
             match arguments.remove(0) {
                 Amf0Value::Boolean(x) => x,
                 _ => false,
@@ -888,7 +888,7 @@ impl ServerSession {
         };
 
         let request_number = self.next_request_number;
-        self.next_request_number = self.next_request_number + 1;
+        self.next_request_number += 1;
         self.outstanding_requests.insert(request_number, request);
 
         let event = ServerSessionEvent::PlayStreamRequested {
@@ -909,7 +909,7 @@ impl ServerSession {
         mut data: Vec<Amf0Value>,
         stream_id: u32,
     ) -> Result<Vec<ServerSessionResult>, ServerSessionError> {
-        if data.len() == 0 {
+        if data.is_empty() {
             // No data so just do nothing
             return Ok(Vec::new());
         }
@@ -948,7 +948,7 @@ impl ServerSession {
         };
 
         let publish_stream_key = match self.active_streams.get(&stream_id) {
-            Some(ref stream) => {
+            Some(stream) => {
                 match stream.current_state {
                     StreamState::Publishing {
                         ref stream_key,
@@ -995,7 +995,7 @@ impl ServerSession {
         };
 
         let publish_stream_key = match self.active_streams.get(&stream_id) {
-            Some(ref stream) => {
+            Some(stream) => {
                 match stream.current_state {
                     StreamState::Publishing {
                         ref stream_key,
@@ -1082,7 +1082,7 @@ impl ServerSession {
         };
 
         let publish_stream_key = match self.active_streams.get(&stream_id) {
-            Some(ref stream) => {
+            Some(stream) => {
                 match stream.current_state {
                     StreamState::Publishing {
                         ref stream_key,
@@ -1141,7 +1141,7 @@ impl ServerSession {
 
         let message = RtmpMessage::Amf0Command {
             command_name: "_result".to_string(),
-            transaction_id: transaction_id,
+            transaction_id,
             command_object: Amf0Value::Object(command_object_properties),
             additional_arguments: vec![Amf0Value::Object(additional_properties)],
         };

@@ -11,8 +11,8 @@ mod stream_manager;
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let manager_sender = stream_manager::start();
 
-    println!("Listening for connections on port 1935");
-    let listener = TcpListener::bind("0.0.0.0:1935").await?;
+    println!("Listening for connections on port 1936");
+    let listener = TcpListener::bind("0.0.0.0:1936").await?;
     let mut current_id = 0;
 
     loop {
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         );
 
         spawn(connection.start_handshake(stream));
-        current_id = current_id + 1;
+        current_id += 1;
     }
 }
 

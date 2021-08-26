@@ -15,8 +15,8 @@ use rml_rtmp::sessions::{
 use rml_rtmp::time::RtmpTimestamp;
 
 const ITERATION_COUNT: u32 = 50_000;
-static APP_NAME: &'static str = "live";
-static STREAM_KEY: &'static str = "stream_key";
+static APP_NAME: &str = "live";
+static STREAM_KEY: &str = "stream_key";
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
@@ -61,10 +61,10 @@ fn main() {
                         timestamp,
                     } => {
                         player1
-                            .send_video_data(1, data.clone(), timestamp.clone(), true)
+                            .send_video_data(1, data.clone(), timestamp, true)
                             .unwrap();
                         player2
-                            .send_video_data(1, data.clone(), timestamp.clone(), true)
+                            .send_video_data(1, data.clone(), timestamp, true)
                             .unwrap();
                     }
 
@@ -158,8 +158,8 @@ fn create_connect_message(
     };
 
     let timestamp = RtmpTimestamp::new(timestamp);
-    let payload = message.into_message_payload(timestamp, stream_id).unwrap();
-    payload
+    
+    message.into_message_payload(timestamp, stream_id).unwrap()
 }
 
 fn create_active_stream(session: &mut ServerSession, serializer: &mut ChunkSerializer) -> u32 {

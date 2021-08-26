@@ -63,7 +63,7 @@ impl MessagePayload {
 
             17 => {
                 // Fake amf3 commands usually seem to have a 0 in front of the amf0 data.
-                if self.data.len() > 0 && self.data[0] == 0x00 {
+                if !self.data.is_empty() && self.data[0] == 0x00 {
                     let slice = self.data.slice(1..);
                     types::amf0_command::deserialize(slice)
                 } else {

@@ -89,7 +89,7 @@ impl<'a> StreamManager<'a> {
 
         loop {
             let (result, _index, remaining_futures) = futures.await;
-            let mut new_futures = Vec::from(remaining_futures);
+            let mut new_futures = remaining_futures;
 
             match result {
                 FutureResult::MessageReceived { receiver, message } => {
@@ -207,7 +207,7 @@ impl<'a> StreamManager<'a> {
                 "Connection {} is requesting to publish, but its already being tracked",
                 connection_id
             );
-            if !send(&sender, ConnectionMessage::RequestDenied { request_id }) {
+            if !send(sender, ConnectionMessage::RequestDenied { request_id }) {
                 self.cleanup_connection(connection_id);
             }
 
@@ -221,7 +221,7 @@ impl<'a> StreamManager<'a> {
                 println!("Publish request by connection {} for stream '{}' rejected as it's already being published by connection {}",
                          connection_id, key, details.connection_id);
 
-                if !send(&sender, ConnectionMessage::RequestDenied { request_id }) {
+                if !send(sender, ConnectionMessage::RequestDenied { request_id }) {
                     self.cleanup_connection(connection_id);
                 }
 
@@ -231,7 +231,7 @@ impl<'a> StreamManager<'a> {
 
         self.key_by_connection_id.insert(connection_id, key.clone());
         self.publish_details.insert(
-            key.clone(),
+            key,
             PublishDetails {
                 video_sequence_header: None,
                 audio_sequence_header: None,
@@ -240,7 +240,7 @@ impl<'a> StreamManager<'a> {
             },
         );
 
-        if !send(&sender, ConnectionMessage::RequestAccepted { request_id }) {
+        if !send(sender, ConnectionMessage::RequestAccepted { request_id }) {
             self.cleanup_connection(connection_id);
         }
     }
@@ -266,7 +266,7 @@ impl<'a> StreamManager<'a> {
                 "Playback requested by connection {} but its already being tracked",
                 connection_id
             );
-            if !send(&sender, ConnectionMessage::RequestDenied { request_id }) {
+            if !send(sender, ConnectionMessage::RequestDenied { request_id }) {
                 self.cleanup_connection(connection_id);
             }
 
@@ -281,7 +281,7 @@ impl<'a> StreamManager<'a> {
         connection_ids.insert(connection_id, PlayerDetails::new(connection_id));
         self.key_by_connection_id.insert(connection_id, key.clone());
 
-        if !send(&sender, ConnectionMessage::RequestAccepted { request_id }) {
+        if !send(sender, ConnectionMessage::RequestAccepted { request_id }) {
             self.cleanup_connection(connection_id);
 
             return;
@@ -300,7 +300,7 @@ impl<'a> StreamManager<'a> {
                 metadata: metadata.clone(),
             };
 
-            if !send(&sender, message) {
+            if !send(sender, message) {
                 self.cleanup_connection(connection_id);
                 return;
             }
@@ -313,7 +313,7 @@ impl<'a> StreamManager<'a> {
                 can_be_dropped: false,
             };
 
-            if !send(&sender, message) {
+            if !send(sender, message) {
                 self.cleanup_connection(connection_id);
                 return;
             }
@@ -326,9 +326,9 @@ impl<'a> StreamManager<'a> {
                 can_be_dropped: false,
             };
 
-            if !send(&sender, message) {
+            if !send(sender, message) {
                 self.cleanup_connection(connection_id);
-                return;
+                
             }
         }
     }
@@ -374,7 +374,7 @@ impl<'a> StreamManager<'a> {
                     can_be_dropped: true,
                 };
 
-                send(&sender, message);
+                send(sender, message);
             }
         }
     }
@@ -429,7 +429,7 @@ impl<'a> StreamManager<'a> {
                     can_be_dropped,
                 };
 
-                send(&sender, message);
+                send(sender, message);
             }
         }
     }
@@ -457,7 +457,7 @@ impl<'a> StreamManager<'a> {
                 let message = ConnectionMessage::NewMetadata {
                     metadata: metadata.clone(),
                 };
-                send(&sender, message);
+                send(sender, message);
             }
         }
     }
@@ -465,17 +465,17 @@ impl<'a> StreamManager<'a> {
 
 fn is_video_sequence_header(data: &Bytes) -> bool {
     // This is assuming h264.
-    return data.len() >= 2 && data[0] == 0x17 && data[1] == 0x00;
+    data.len() >= 2 && data[0] == 0x17 && data[1] == 0x00
 }
 
 fn is_audio_sequence_header(data: &Bytes) -> bool {
     // This is assuming aac
-    return data.len() >= 2 && data[0] == 0xaf && data[1] == 0x00;
+    data.len() >= 2 && data[0] == 0xaf && data[1] == 0x00
 }
 
 fn is_video_keyframe(data: &Bytes) -> bool {
     // assumings h264
-    return data.len() >= 2 && data[0] == 0x17 && data[1] != 0x00; // 0x00 is the sequence header, don't count that for now
+    data.len() >= 2 && data[0] == 0x17 && data[1] != 0x00 // 0x00 is the sequence header, don't count that for now
 }
 
 async fn wait_for_client_disconnection(

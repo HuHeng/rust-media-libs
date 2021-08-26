@@ -151,7 +151,7 @@ impl PartialOrd<u32> for RtmpTimestamp {
 
 impl PartialOrd<RtmpTimestamp> for u32 {
     fn partial_cmp(&self, other: &RtmpTimestamp) -> Option<Ordering> {
-        Some(compare(&self, &other.value))
+        Some(compare(self, &other.value))
     }
 }
 

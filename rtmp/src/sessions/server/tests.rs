@@ -418,16 +418,10 @@ fn can_receive_and_raise_event_for_metadata_from_obs() {
     let mut properties = HashMap::new();
     properties.insert("width".to_string(), Amf0Value::Number(1920_f64));
     properties.insert("height".to_string(), Amf0Value::Number(1080_f64));
-    properties.insert(
-        "videocodecid".to_string(),
-        Amf0Value::Number(10.0),
-    );
+    properties.insert("videocodecid".to_string(), Amf0Value::Number(10.0));
     properties.insert("videodatarate".to_string(), Amf0Value::Number(1200_f64));
     properties.insert("framerate".to_string(), Amf0Value::Number(30_f64));
-    properties.insert(
-        "audiocodecid".to_string(),
-        Amf0Value::Number(7.0),
-    );
+    properties.insert("audiocodecid".to_string(), Amf0Value::Number(7.0));
     properties.insert("audiodatarate".to_string(), Amf0Value::Number(96_f64));
     properties.insert("audiosamplerate".to_string(), Amf0Value::Number(48000_f64));
     properties.insert("audiosamplesize".to_string(), Amf0Value::Number(16_f64));
@@ -470,11 +464,7 @@ fn can_receive_and_raise_event_for_metadata_from_obs() {
             );
             assert_eq!(metadata.video_width, Some(1920), "Unexpected video width");
             assert_eq!(metadata.video_height, Some(1080), "Unexepcted video height");
-            assert_eq!(
-                metadata.video_codec_id,
-                Some(10),
-                "Unexepcted video codec"
-            );
+            assert_eq!(metadata.video_codec_id, Some(10), "Unexepcted video codec");
             assert_eq!(
                 metadata.video_frame_rate,
                 Some(30_f32),
@@ -485,11 +475,7 @@ fn can_receive_and_raise_event_for_metadata_from_obs() {
                 Some(1200),
                 "Unexpected video bitrate"
             );
-            assert_eq!(
-                metadata.audio_codec_id,
-                Some(7),
-                "Unexpected audio codec"
-            );
+            assert_eq!(metadata.audio_codec_id, Some(7), "Unexpected audio codec");
             assert_eq!(
                 metadata.audio_bitrate_kbps,
                 Some(96),
@@ -1210,7 +1196,7 @@ fn can_send_video_data_to_playing_stream() {
     let original_data = Bytes::from(vec![1_u8, 2_u8, 3_u8]);
     let timestamp = RtmpTimestamp::new(500);
     let packet = session
-        .send_video_data(stream_id, original_data.clone(), timestamp.clone(), false)
+        .send_video_data(stream_id, original_data.clone(), timestamp, false)
         .unwrap();
     let payload = deserializer
         .get_next_message(&packet.bytes[..])
@@ -1256,7 +1242,7 @@ fn can_send_audio_data_to_playing_stream() {
     let original_data = Bytes::from(vec![1_u8, 2_u8, 3_u8]);
     let timestamp = RtmpTimestamp::new(500);
     let packet = session
-        .send_audio_data(stream_id, original_data.clone(), timestamp.clone(), false)
+        .send_audio_data(stream_id, original_data.clone(), timestamp, false)
         .unwrap();
     let payload = deserializer
         .get_next_message(&packet.bytes[..])
@@ -1629,8 +1615,8 @@ fn create_connect_message(
     };
 
     let timestamp = RtmpTimestamp::new(timestamp);
-    let payload = message.into_message_payload(timestamp, stream_id).unwrap();
-    payload
+
+    message.into_message_payload(timestamp, stream_id).unwrap()
 }
 
 fn perform_connection(
@@ -1704,7 +1690,7 @@ fn create_active_stream(
                 "Unexpected number of additional arguments in response"
             );
             match additional_arguments[0] {
-                Amf0Value::Number(x) => return x as u32,
+                Amf0Value::Number(x) => x as u32,
                 _ => panic!("First additional argument was not an Amf0Value::Number"),
             }
         }

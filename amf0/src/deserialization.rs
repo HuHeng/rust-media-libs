@@ -18,12 +18,16 @@ struct ObjectProperty {
 pub fn deserialize<R: Read>(bytes: &mut R) -> Result<Vec<Amf0Value>, Amf0DeserializationError> {
     let mut results = vec![];
 
-    loop {
-        match read_next_value(bytes)? {
-            Some(x) => results.push(x),
-            None => break,
-        };
+    while let Some(x) = read_next_value(bytes)? {
+        results.push(x);
     }
+
+    //loop {
+    //    match read_next_value(bytes)? {
+    //        Some(x) => results.push(x),
+    //        None => break,
+    //    };
+    //}
 
     Ok(results)
 }
@@ -81,7 +85,8 @@ fn parse_bool<R: Read>(bytes: &mut R) -> Result<Amf0Value, Amf0DeserializationEr
 fn parse_string<R: Read>(bytes: &mut R) -> Result<Amf0Value, Amf0DeserializationError> {
     let length = bytes.read_u16::<BigEndian>()?;
     let mut buffer: Vec<u8> = vec![0_u8; length as usize];
-    bytes.read(&mut buffer)?;
+    //bytes.read(&mut buffer)?;
+    bytes.read_exact(&mut buffer)?;
 
     let value = String::from_utf8(buffer)?;
     Ok(Amf0Value::Utf8String(value))
@@ -90,12 +95,16 @@ fn parse_string<R: Read>(bytes: &mut R) -> Result<Amf0Value, Amf0Deserialization
 fn parse_object<R: Read>(bytes: &mut R) -> Result<Amf0Value, Amf0DeserializationError> {
     let mut properties = HashMap::new();
 
-    loop {
-        match parse_object_property(bytes)? {
-            Some(property) => properties.insert(property.label, property.value),
-            None => break,
-        };
+    while let Some(property) = parse_object_property(bytes)? {
+        properties.insert(property.label, property.value);
     }
+
+    //loop {
+    //    match parse_object_property(bytes)? {
+    //        Some(property) => properties.insert(property.label, property.value),
+    //        None => break,
+    //    };
+    //}
 
     let deserialized_value = Amf0Value::Object(properties);
     Ok(deserialized_value)
@@ -148,7 +157,7 @@ fn parse_object_property<R: Read>(
     }
 
     let mut label_buffer = vec![0; label_length as usize];
-    bytes.read(&mut label_buffer)?;
+    bytes.read_exact(&mut label_buffer)?;
 
     let label = String::from_utf8(label_buffer)?;
 

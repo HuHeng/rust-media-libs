@@ -188,7 +188,7 @@ impl Connection {
                             .session
                             .as_mut()
                             .unwrap()
-                            .accept_request(request_id.clone())
+                            .accept_request(*request_id)
                             .map_err(|x| format!("Failed to accept request: {:?}", x))?;
 
                         (Some(new_state), (results, ConnectionAction::None))
@@ -203,14 +203,14 @@ impl Connection {
                         let new_state = State::Playing {
                             app_name: app_name.clone(),
                             stream_key: stream_key.clone(),
-                            stream_id: stream_id.clone(),
+                            stream_id: *stream_id,
                         };
 
                         let results = self
                             .session
                             .as_mut()
                             .unwrap()
-                            .accept_request(request_id.clone())
+                            .accept_request(*request_id)
                             .map_err(|x| format!("Failed to accept request: {:?}", x))?;
 
                         (Some(new_state), (results, ConnectionAction::None))
@@ -326,7 +326,7 @@ impl Connection {
         results: &mut Vec<ServerSessionResult>,
         byte_writer: &mut UnboundedSender<Packet>,
     ) -> Result<ConnectionAction, Box<dyn std::error::Error + Sync + Send>> {
-        if results.len() == 0 {
+        if results.is_empty() {
             return Ok(ConnectionAction::None);
         }
 
@@ -334,7 +334,7 @@ impl Connection {
         for result in results.drain(..) {
             match result {
                 ServerSessionResult::OutboundResponse(packet) => {
-                    if !send(&byte_writer, packet) {
+                    if !send(byte_writer, packet) {
                         break;
                     }
                 }
@@ -415,7 +415,7 @@ impl Connection {
                 match &self.state {
                     State::Connected { .. } => {
                         self.state = State::PublishRequested {
-                            request_id: request_id.clone(),
+                            request_id,
                             app_name: app_name.clone(),
                             stream_key: stream_key.clone(),
                         };
@@ -454,7 +454,7 @@ impl Connection {
                 match &self.state {
                     State::Connected { .. } => {
                         self.state = State::PlaybackRequested {
-                            request_id: request_id.clone(),
+                            request_id,
                             app_name: app_name.clone(),
                             stream_key: stream_key.clone(),
                             stream_id,

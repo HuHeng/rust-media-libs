@@ -120,7 +120,7 @@ impl ChunkSerializer {
 
             slices.push(&message.data[start_index..end_index]);
 
-            iteration = iteration + 1;
+            iteration += 1;
         }
 
         for (idx, slice) in slices.into_iter().enumerate() {
@@ -164,7 +164,7 @@ impl ChunkSerializer {
         } else {
             match self.previous_headers.get(&header.chunk_stream_id) {
                 None => ChunkHeaderFormat::Full,
-                Some(ref previous_header) => {
+                Some(previous_header) => {
                     if continued_chunk {
                         //  https://github.com/melpon/rfc/blob/master/rtmp.md#53124-type-3
                         //  Continued chunks should use Format Type 3.
@@ -226,11 +226,11 @@ fn add_basic_header(
 
     let mut first_byte = match csid {
         x if x <= 63 => x as u8,
-        x if x >= 64 && x <= 319 => 0,
+        x if (64..=319).contains(&x) => 0,
         _ => 1,
     };
 
-    first_byte = first_byte | format_mask;
+    first_byte |= format_mask;
     bytes.write_u8(first_byte)?;
 
     // Since get_csid_for_message_type only does csids up to 6, ignore 2 and 3 byte csid formats
