@@ -199,7 +199,7 @@ impl ChunkDeserializer {
     }
 
     fn form_header(&mut self) -> Result<ParseStageResult, ChunkDeserializationError> {
-        if self.buffer.len() < 1 {
+        if self.buffer.is_empty() {
             return Ok(ParseStageResult::NotEnoughBytes);
         }
 
@@ -237,7 +237,7 @@ impl ChunkDeserializer {
             // across multiple chunks.  We need to be careful *NOT* to apply the delta to each
             // type 3 chunk that's trying to serve a single message, otherwise timestamps will
             // get out of control.
-            if self.current_payload_data.len() == 0 {
+            if self.current_payload_data.is_empty() {
                 // Since we don't have any payload data yet, that means this is the first
                 // chunk of the message.  As it's the first chunk this is the only time we should
                 // apply the previous header's delta to the timestamp
@@ -306,7 +306,7 @@ impl ChunkDeserializer {
             return Ok(ParseStageResult::Success);
         }
 
-        if self.buffer.len() < 1 {
+        if self.buffer.is_empty() {
             return Ok(ParseStageResult::NotEnoughBytes);
         }
 
@@ -358,7 +358,7 @@ impl ChunkDeserializer {
         // If the type 3 chunk is not the first chunk of a message, we just ignore it's extended timestamp because the timestamp of this message was already deserialized.
         if self.current_header_format == ChunkHeaderFormat::Full {
             self.current_header.timestamp.set(timestamp);
-        } else if self.current_payload_data.len() == 0 {
+        } else if self.current_payload_data.is_empty() {
             // Since we already added the MAX_INITIAL_TIMESTAMP to the timestamp, only add the delta difference
             self.current_header.timestamp =
                 self.current_header.timestamp + (timestamp - MAX_INITIAL_TIMESTAMP);
@@ -434,7 +434,7 @@ fn get_format(byte: &u8) -> ChunkHeaderFormat {
 fn get_csid(buffer: &[u8]) -> ParsedValue<u32> {
     const CSID_MASK: u8 = 0b00111111;
 
-    if buffer.len() < 1 {
+    if buffer.is_empty() {
         return ParsedValue::NotEnoughBytes;
     }
 

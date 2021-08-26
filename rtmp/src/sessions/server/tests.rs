@@ -165,7 +165,7 @@ fn connect_request_strips_trailing_slash() {
     let config = get_basic_config();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     let connect_payload = create_connect_message("some_app/".to_string(), 15, 0, 0.0);
@@ -289,7 +289,7 @@ fn can_create_stream_on_connected_session() {
     let config = get_basic_config();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection("some_app", &mut session, &mut serializer, &mut deserializer);
 
@@ -343,7 +343,7 @@ fn can_accept_live_publishing_to_requested_stream_key() {
     let config = get_basic_config();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection("some_app", &mut session, &mut serializer, &mut deserializer);
 
@@ -470,7 +470,7 @@ fn can_receive_and_raise_event_for_metadata_from_obs() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -601,7 +601,7 @@ fn can_receive_audio_data_on_published_stream() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -655,7 +655,7 @@ fn can_receive_video_data_on_published_stream() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -709,7 +709,7 @@ fn publish_finished_event_raised_when_delete_stream_invoked_on_publishing_stream
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -766,7 +766,7 @@ fn publish_finished_event_raised_when_close_stream_invoked_on_publishing_stream(
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -823,7 +823,7 @@ fn can_request_publishing_on_closed_stream() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -884,7 +884,7 @@ fn can_accept_play_command_with_no_optional_parameters_to_requested_stream_key()
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1127,7 +1127,7 @@ fn can_accept_play_command_with_all_optional_parameters_to_requested_stream_key(
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1199,7 +1199,7 @@ fn play_finished_event_when_close_stream_invoked() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1257,7 +1257,7 @@ fn play_finished_event_when_delete_stream_invoked_on_playing_stream() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1315,7 +1315,7 @@ fn can_send_metadata_to_playing_stream() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1442,7 +1442,7 @@ fn can_send_video_data_to_playing_stream() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1462,7 +1462,7 @@ fn can_send_video_data_to_playing_stream() {
     let original_data = Bytes::from(vec![1_u8, 2_u8, 3_u8]);
     let timestamp = RtmpTimestamp::new(500);
     let packet = session
-        .send_video_data(stream_id, original_data.clone(), timestamp.clone(), false)
+        .send_video_data(stream_id, original_data.clone(), timestamp, false)
         .unwrap();
     let payload = deserializer
         .get_next_message(&packet.bytes[..])
@@ -1495,7 +1495,7 @@ fn can_send_audio_data_to_playing_stream() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1515,7 +1515,7 @@ fn can_send_audio_data_to_playing_stream() {
     let original_data = Bytes::from(vec![1_u8, 2_u8, 3_u8]);
     let timestamp = RtmpTimestamp::new(500);
     let packet = session
-        .send_audio_data(stream_id, original_data.clone(), timestamp.clone(), false)
+        .send_audio_data(stream_id, original_data.clone(), timestamp, false)
         .unwrap();
     let payload = deserializer
         .get_next_message(&packet.bytes[..])
@@ -1547,7 +1547,7 @@ fn automatically_responds_to_ping_requests() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1604,7 +1604,7 @@ fn event_raised_when_ping_response_received() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1648,7 +1648,7 @@ fn can_send_ping_request() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1693,7 +1693,7 @@ fn sends_ack_after_receiving_window_ack_bytes() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1768,7 +1768,7 @@ fn event_raised_when_client_sends_an_acknowledgement() {
 
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, results) = ServerSession::new(config.clone()).unwrap();
+    let (mut session, results) = ServerSession::new(config).unwrap();
     consume_results(&mut deserializer, results);
     perform_connection(
         test_app_name.as_ref(),
@@ -1876,8 +1876,8 @@ fn create_connect_message(
     };
 
     let timestamp = RtmpTimestamp::new(timestamp);
-    let payload = message.into_message_payload(timestamp, stream_id).unwrap();
-    payload
+    
+    message.into_message_payload(timestamp, stream_id).unwrap()
 }
 
 fn perform_connection(
@@ -1951,7 +1951,7 @@ fn create_active_stream(
                 "Unexpected number of additional arguments in response"
             );
             match additional_arguments[0] {
-                Amf0Value::Number(x) => return x as u32,
+                Amf0Value::Number(x) => x as u32,
                 _ => panic!("First additional argument was not an Amf0Value::Number"),
             }
         }

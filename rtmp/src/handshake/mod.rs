@@ -41,8 +41,8 @@ const RANDOM_CRUD: [u8; 32] = [
     0x02_u8, 0x9e_u8, 0x7e_u8, 0x57_u8, 0x6e_u8, 0xec_u8, 0x5d_u8, 0x2d_u8, 0x29_u8, 0x80_u8,
     0x6f_u8, 0xab_u8, 0x93_u8, 0xb8_u8, 0xe6_u8, 0x36_u8, 0xcf_u8, 0xeb_u8, 0x31_u8, 0xae_u8,
 ];
-const GENUINE_FMS_CONST: &'static str = "Genuine Adobe Flash Media Server 001";
-const GENUINE_FP_CONST: &'static str = "Genuine Adobe Flash Player 001";
+const GENUINE_FMS_CONST: &str = "Genuine Adobe Flash Media Server 001";
+const GENUINE_FP_CONST: &str = "Genuine Adobe Flash Player 001";
 
 /// Contains the result after processing bytes for the handshaking process
 #[derive(PartialEq, Eq, Debug)]
@@ -188,7 +188,7 @@ impl Handshake {
             let key_bytes = constant_key.as_bytes();
             let pre_digest = &self.sent_p1[0..(digest_offset as usize)];
             let post_digest = &self.sent_p1[(digest_offset as usize + SHA256_DIGEST_LENGTH)..];
-            self.sent_digest = calc_hmac_from_parts(&pre_digest, &post_digest, &key_bytes);
+            self.sent_digest = calc_hmac_from_parts(pre_digest, post_digest, key_bytes);
         }
 
         // Form packet #1
@@ -273,7 +273,7 @@ impl Handshake {
     }
 
     fn parse_p0(&mut self) -> Result<HandshakeProcessResult, HandshakeError> {
-        if self.input_buffer.len() == 0 {
+        if self.input_buffer.is_empty() {
             return Ok(HandshakeProcessResult::InProgress {
                 response_bytes: Vec::new(),
             });
@@ -306,7 +306,7 @@ impl Handshake {
 
             for x in self.input_buffer.drain(..RTMP_PACKET_SIZE) {
                 handshake[index] = x;
-                index = index + 1;
+                index += 1;
             }
 
             received_packet_1 = handshake;
@@ -432,13 +432,13 @@ fn get_digest_for_received_packet(
     // either at index 8 or 772 with no known reason for why one would be used over the other.  For
     // the best compatibility just try both.
 
-    let v1_offset = get_client_digest_offset(&packet);
-    let v1_parts = get_message_parts(&packet, v1_offset)?;
-    let v1_hmac = calc_hmac_from_parts(&v1_parts.before_digest, &v1_parts.after_digest, &key);
+    let v1_offset = get_client_digest_offset(packet);
+    let v1_parts = get_message_parts(packet, v1_offset)?;
+    let v1_hmac = calc_hmac_from_parts(&v1_parts.before_digest, &v1_parts.after_digest, key);
 
-    let v2_offset = get_server_digest_offset(&packet);
-    let v2_parts = get_message_parts(&packet, v2_offset)?;
-    let v2_hmac = calc_hmac_from_parts(&v2_parts.before_digest, &v2_parts.after_digest, &key);
+    let v2_offset = get_server_digest_offset(packet);
+    let v2_parts = get_message_parts(packet, v2_offset)?;
+    let v2_hmac = calc_hmac_from_parts(&v2_parts.before_digest, &v2_parts.after_digest, key);
 
     match true {
         _ if v1_hmac == v1_parts.digest => Ok(v1_parts.digest),
@@ -452,15 +452,15 @@ fn get_digest_for_received_packet(
 fn get_server_digest_offset(data: &[u8; RTMP_PACKET_SIZE]) -> u32 {
     let first_four_byte_sum =
         (data[772] as u32) + (data[773] as u32) + (data[774] as u32) + (data[775] as u32);
-    let offset = (first_four_byte_sum % 728) + 776;
-    offset
+    
+    (first_four_byte_sum % 728) + 776
 }
 
 fn get_client_digest_offset(data: &[u8; RTMP_PACKET_SIZE]) -> u32 {
     let first_four_byte_sum =
         (data[8] as u32) + (data[9] as u32) + (data[10] as u32) + (data[11] as u32);
-    let offset = (first_four_byte_sum % 728) + 12;
-    offset
+    
+    (first_four_byte_sum % 728) + 12
 }
 
 fn get_message_parts(
@@ -492,7 +492,7 @@ fn calc_hmac_from_parts(part1: &[u8], part2: &[u8], key: &[u8]) -> [u8; SHA256_D
         inputs.push(part2[index]);
     }
 
-    calc_hmac(&inputs, &key)
+    calc_hmac(&inputs, key)
 }
 
 fn calc_hmac(input: &[u8], key: &[u8]) -> [u8; SHA256_DIGEST_LENGTH] {
@@ -872,7 +872,7 @@ mod tests {
         let data1 = "Hi ".as_bytes();
         let data2 = "There".as_bytes();
         let key = [0x0b; 20];
-        let hmac = calc_hmac_from_parts(&data1, &data2, &key);
+        let hmac = calc_hmac_from_parts(data1, data2, &key);
 
         let expected = [
             176_u8, 52_u8, 76_u8, 97_u8, 216_u8, 219_u8, 56_u8, 83_u8, 92_u8, 168_u8, 175_u8,
@@ -887,7 +887,7 @@ mod tests {
     fn hmac_test2() {
         let data1 = "Hi There".as_bytes();
         let key = [0x0b; 20];
-        let hmac = calc_hmac(&data1, &key);
+        let hmac = calc_hmac(data1, &key);
 
         let expected = [
             176_u8, 52_u8, 76_u8, 97_u8, 216_u8, 219_u8, 56_u8, 83_u8, 92_u8, 168_u8, 175_u8,
@@ -916,7 +916,7 @@ mod tests {
 
     #[test]
     fn can_get_digest_from_c1() {
-        match get_digest_for_received_packet(&JWPLAYER_C1, &(GENUINE_FP_CONST.as_bytes())) {
+        match get_digest_for_received_packet(&JWPLAYER_C1, GENUINE_FP_CONST.as_bytes()) {
             Ok(_) => {}
             Err(x) => panic!("Unexpected error: {:?}", x),
         }

@@ -9,7 +9,7 @@ fn main() {
     let mut args: Vec<String> = env::args().collect();
     args.drain(0..1); // remove the executable
 
-    if args.len() == 0 || ((args[0] != "client" && args.len() < 2) && args[0] != "server") {
+    if args.is_empty() || ((args[0] != "client" && args.len() < 2) && args[0] != "server") {
         println!("No arguments provided.  One of the following must be provided");
         println!("Act as a server: server");
         println!("Act as a client: client <server host>");
@@ -42,7 +42,7 @@ fn act_as_client(host_address: &str) {
                 }) => (true, bytes),
             };
 
-        if response_bytes.len() > 0 {
+        if !response_bytes.is_empty() {
             stream.write(&response_bytes).unwrap();
         }
 
@@ -79,7 +79,7 @@ fn act_as_server() {
                     }) => (true, bytes),
                 };
 
-            if response_bytes.len() > 0 {
+            if !response_bytes.is_empty() {
                 stream.write(&response_bytes).unwrap();
             }
 

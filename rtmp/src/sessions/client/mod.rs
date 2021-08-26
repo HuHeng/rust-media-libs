@@ -377,7 +377,7 @@ impl ClientSession {
             event_type: UserControlEventType::PingRequest,
             buffer_length: None,
             stream_id: None,
-            timestamp: Some(current_epoch.clone()),
+            timestamp: Some(current_epoch),
         };
 
         let payload = message.into_message_payload(self.get_epoch(), 0)?;
@@ -591,7 +591,7 @@ impl ClientSession {
     }
 
     fn handle_amf0_data(&mut self, mut data: Vec<Amf0Value>, stream_id: u32) -> ClientResult {
-        if data.len() == 0 {
+        if data.is_empty() {
             // No data so just do nothing
             return Ok(Vec::new());
         }
@@ -670,7 +670,7 @@ impl ClientSession {
 
         match outstanding_transaction {
             OutstandingTransaction::ConnectionRequested { app_name: _ } => {
-                let description = if additional_args.len() > 0 {
+                let description = if !additional_args.is_empty() {
                     if let Amf0Value::Object(mut properties) = additional_args.remove(0) {
                         if let Some(Amf0Value::Utf8String(value)) = properties.remove("description")
                         {
@@ -691,7 +691,7 @@ impl ClientSession {
 
             OutstandingTransaction::CreateStream { purpose: _ } => {
                 let kind = ClientSessionErrorKind::CreateStreamFailed;
-                return Err(ClientSessionError { kind });
+                Err(ClientSessionError { kind })
             }
         }
     }
@@ -736,7 +736,7 @@ impl ClientSession {
             }
 
             OutstandingTransaction::CreateStream { purpose } => {
-                if additional_args.len() == 0 {
+                if additional_args.is_empty() {
                     let kind = ClientSessionErrorKind::CreateStreamResponseHadNoStreamNumber;
                     return Err(ClientSessionError { kind });
                 }
@@ -818,7 +818,7 @@ impl ClientSession {
     }
 
     fn handle_on_status_command(&mut self, mut arguments: Vec<Amf0Value>) -> ClientResult {
-        if arguments.len() < 1 {
+        if arguments.is_empty() {
             let kind = ClientSessionErrorKind::InvalidOnStatusArguments;
             return Err(ClientSessionError { kind });
         }
@@ -887,7 +887,7 @@ impl ClientSession {
     }
 
     fn handle_amf0_data_on_meta_data(&mut self, mut data: Vec<Amf0Value>) -> ClientResult {
-        if data.len() < 1 {
+        if data.is_empty() {
             // No data so ignore it
             return Ok(Vec::new());
         }

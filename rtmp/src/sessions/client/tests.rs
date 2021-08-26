@@ -13,7 +13,7 @@ fn new_session_creates_set_chunk_size_message() {
     config.chunk_size = 1111;
 
     let mut deserializer = ChunkDeserializer::new();
-    let (_, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (_, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     assert_eq!(
@@ -62,7 +62,7 @@ fn can_send_connect_request() {
                 Amf0Value::Object(properties) => {
                     assert_eq!(
                         properties.get("app"),
-                        Some(&Amf0Value::Utf8String(app_name.clone())),
+                        Some(&Amf0Value::Utf8String(app_name)),
                         "Unexpected app name"
                     );
                     assert_eq!(
@@ -72,7 +72,7 @@ fn can_send_connect_request() {
                     );
                     assert_eq!(
                         properties.get("flashVer"),
-                        Some(&Amf0Value::Utf8String(config.flash_version.clone())),
+                        Some(&Amf0Value::Utf8String(config.flash_version)),
                         "Unexpected flash version"
                     );
                 }
@@ -130,7 +130,7 @@ fn can_send_connect_request_with_tc_url() {
                 Amf0Value::Object(properties) => {
                     assert_eq!(
                         properties.get("app"),
-                        Some(&Amf0Value::Utf8String(app_name.clone())),
+                        Some(&Amf0Value::Utf8String(app_name)),
                         "Unexpected app name"
                     );
                     assert_eq!(
@@ -140,12 +140,12 @@ fn can_send_connect_request_with_tc_url() {
                     );
                     assert_eq!(
                         properties.get("flashVer"),
-                        Some(&Amf0Value::Utf8String(config.flash_version.clone())),
+                        Some(&Amf0Value::Utf8String(config.flash_version)),
                         "Unexpected flash version"
                     );
                     assert_eq!(
                         properties.get("tcUrl"),
-                        Some(&Amf0Value::Utf8String(tc_url.clone())),
+                        Some(&Amf0Value::Utf8String(tc_url)),
                         "Unexpected tcUrl"
                     );
                 }
@@ -167,10 +167,10 @@ fn can_process_connect_success_response() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
-    let results = session.request_connection(app_name.clone()).unwrap();
+    let results = session.request_connection(app_name).unwrap();
     consume_results(&mut deserializer, vec![results]);
 
     let response = get_connect_success_response(&mut serializer);
@@ -193,10 +193,10 @@ fn event_raised_when_connect_request_rejected() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
-    let results = session.request_connection(app_name.clone()).unwrap();
+    let results = session.request_connection(app_name).unwrap();
     consume_results(&mut deserializer, vec![results]);
 
     let response = get_connect_error_response(&mut serializer);
@@ -206,7 +206,7 @@ fn event_raised_when_connect_request_rejected() {
     assert_eq!(events.len(), 1, "Expected one event returned");
     match events.remove(0) {
         ClientSessionEvent::ConnectionRequestRejected { description } => {
-            assert!(description.len() > 0, "Expected a non-empty description");
+            assert!(!description.is_empty(), "Expected a non-empty description");
         }
 
         x => panic!(
@@ -222,7 +222,7 @@ fn error_thrown_when_connect_request_made_after_successful_connection() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     let results = session.request_connection(app_name.clone()).unwrap();
@@ -232,7 +232,7 @@ fn error_thrown_when_connect_request_made_after_successful_connection() {
     let results = session.handle_input(&response.bytes[..]).unwrap();
     consume_results(&mut deserializer, results);
 
-    let error = session.request_connection(app_name.clone()).unwrap_err();
+    let error = session.request_connection(app_name).unwrap_err();
     match error.kind {
         ClientSessionErrorKind::CantConnectWhileAlreadyConnected => (),
         x => panic!(
@@ -251,7 +251,7 @@ fn successful_connect_request_sends_window_ack_size() {
     let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
     consume_results(&mut deserializer, initial_results);
 
-    let results = session.request_connection(app_name.clone()).unwrap();
+    let results = session.request_connection(app_name).unwrap();
     consume_results(&mut deserializer, vec![results]);
 
     let response = get_connect_success_response(&mut serializer);
@@ -284,7 +284,7 @@ fn successful_play_request_workflow() {
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
-        app_name.clone(),
+        app_name,
         &mut session,
         &mut serializer,
         &mut deserializer,
@@ -385,7 +385,7 @@ fn successful_play_request_workflow() {
             );
             assert_eq!(
                 additional_arguments[0],
-                Amf0Value::Utf8String(stream_key.clone()),
+                Amf0Value::Utf8String(stream_key),
                 "Unexpected stream key"
             );
         }
@@ -615,7 +615,7 @@ fn can_receive_audio_data_prior_to_play_request_being_accepted() {
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
-        app_name.clone(),
+        app_name,
         &mut session,
         &mut serializer,
         &mut deserializer,
@@ -716,7 +716,7 @@ fn can_receive_audio_data_prior_to_play_request_being_accepted() {
             );
             assert_eq!(
                 additional_arguments[0],
-                Amf0Value::Utf8String(stream_key.clone()),
+                Amf0Value::Utf8String(stream_key),
                 "Unexpected stream key"
             );
         }
@@ -760,7 +760,7 @@ fn can_receive_video_data_prior_to_play_request_being_accepted() {
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
-        app_name.clone(),
+        app_name,
         &mut session,
         &mut serializer,
         &mut deserializer,
@@ -861,7 +861,7 @@ fn can_receive_video_data_prior_to_play_request_being_accepted() {
             );
             assert_eq!(
                 additional_arguments[0],
-                Amf0Value::Utf8String(stream_key.clone()),
+                Amf0Value::Utf8String(stream_key),
                 "Unexpected stream key"
             );
         }
@@ -953,7 +953,7 @@ fn automatically_responds_to_ping_requests() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1009,7 +1009,7 @@ fn event_raised_when_ping_response_received() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1052,7 +1052,7 @@ fn can_send_ping_request() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1172,7 +1172,7 @@ fn event_raised_when_server_sends_an_acknowledgement() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1214,7 +1214,7 @@ fn successful_publish_request_workflow() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1286,7 +1286,7 @@ fn successful_publish_request_workflow() {
             );
             assert_eq!(
                 additional_arguments[0],
-                Amf0Value::Utf8String(stream_key.clone()),
+                Amf0Value::Utf8String(stream_key),
                 "Unexpected stream key"
             );
             assert_eq!(
@@ -1319,7 +1319,7 @@ fn publisher_can_send_metadata() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1443,7 +1443,7 @@ fn publisher_can_send_video_data() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1485,7 +1485,7 @@ fn publisher_can_send_audio_data() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1527,7 +1527,7 @@ fn can_stop_publishing() {
     let config = ClientSessionConfig::new();
     let mut deserializer = ChunkDeserializer::new();
     let mut serializer = ChunkSerializer::new();
-    let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
+    let (mut session, initial_results) = ClientSession::new(config).unwrap();
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
@@ -1893,7 +1893,7 @@ fn perform_successful_play_request(
             );
             assert_eq!(
                 additional_arguments[0],
-                Amf0Value::Utf8String(stream_key.clone()),
+                Amf0Value::Utf8String(stream_key),
                 "Unexpected stream key"
             );
         }
@@ -1985,7 +1985,7 @@ fn perform_successful_publish_request(
             );
             assert_eq!(
                 additional_arguments[0],
-                Amf0Value::Utf8String(stream_key.clone()),
+                Amf0Value::Utf8String(stream_key),
                 "Unexpected stream key"
             );
             assert_eq!(
