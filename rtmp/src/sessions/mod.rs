@@ -73,10 +73,7 @@ impl StreamMetadata {
     pub fn apply_metadata_values(&mut self, mut properties: HashMap<String, Amf0Value>) {
         for (key, value) in properties.drain() {
             match key.as_ref() {
-                "width" => match value.get_number() {
-                    Some(x) => self.video_width = Some(x as u32),
-                    None => (),
-                },
+                "width" => if let Some(x) = value.get_number() {Some(x as u32);},
 
                 "height" => match value.get_number() {
                     Some(x) => self.video_height = Some(x as u32),

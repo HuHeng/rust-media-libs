@@ -14,6 +14,12 @@ pub struct MessagePayload {
     pub data: Bytes,
 }
 
+impl Default for MessagePayload {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl fmt::Debug for MessagePayload {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,

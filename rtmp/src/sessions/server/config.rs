@@ -7,6 +7,12 @@ pub struct ServerSessionConfig {
     pub window_ack_size: u32,
 }
 
+impl Default for ServerSessionConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ServerSessionConfig {
     /// Creates a new server session config with overridable defaults
     pub fn new() -> ServerSessionConfig {
