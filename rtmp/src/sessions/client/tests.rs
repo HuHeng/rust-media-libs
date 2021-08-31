@@ -283,12 +283,7 @@ fn successful_play_request_workflow() {
     let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
     consume_results(&mut deserializer, initial_results);
 
-    perform_successful_connect(
-        app_name,
-        &mut session,
-        &mut serializer,
-        &mut deserializer,
-    );
+    perform_successful_connect(app_name, &mut session, &mut serializer, &mut deserializer);
 
     let result = session.request_playback(stream_key.clone()).unwrap();
     let (mut responses, _) = split_results(&mut deserializer, vec![result]);
@@ -614,12 +609,7 @@ fn can_receive_audio_data_prior_to_play_request_being_accepted() {
     let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
     consume_results(&mut deserializer, initial_results);
 
-    perform_successful_connect(
-        app_name,
-        &mut session,
-        &mut serializer,
-        &mut deserializer,
-    );
+    perform_successful_connect(app_name, &mut session, &mut serializer, &mut deserializer);
 
     let result = session.request_playback(stream_key.clone()).unwrap();
     let (mut responses, _) = split_results(&mut deserializer, vec![result]);
@@ -759,12 +749,7 @@ fn can_receive_video_data_prior_to_play_request_being_accepted() {
     let (mut session, initial_results) = ClientSession::new(config.clone()).unwrap();
     consume_results(&mut deserializer, initial_results);
 
-    perform_successful_connect(
-        app_name,
-        &mut session,
-        &mut serializer,
-        &mut deserializer,
-    );
+    perform_successful_connect(app_name, &mut session, &mut serializer, &mut deserializer);
 
     let result = session.request_playback(stream_key.clone()).unwrap();
     let (mut responses, _) = split_results(&mut deserializer, vec![result]);

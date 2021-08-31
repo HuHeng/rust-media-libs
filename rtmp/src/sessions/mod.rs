@@ -12,6 +12,8 @@ being managed (in any direction) each connection should have its own, distinct, 
 It is also expected that a session has been created *after* handshaking has been completed.
 */
 
+#![allow(clippy::single_match)]
+
 mod client;
 mod server;
 
@@ -71,7 +73,11 @@ impl StreamMetadata {
     fn apply_metadata_values(&mut self, mut properties: HashMap<String, Amf0Value>) {
         for (key, value) in properties.drain() {
             match key.as_ref() {
-                "width" => if let Some(x) = value.get_number() {Some(x as u32);},
+                "width" => {
+                    if let Some(x) = value.get_number() {
+                        self.video_width = Some(x as u32);
+                    }
+                }
 
                 "height" => match value.get_number() {
                     Some(x) => self.video_height = Some(x as u32),

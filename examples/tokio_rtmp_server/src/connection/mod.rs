@@ -145,11 +145,9 @@ impl Connection {
                         None => break,
                         Some(message) => {
                             let (new_results, action) = self.handle_connection_message(message)?;
-                            match action {
-                                ConnectionAction::Disconnect => break,
-                                _ => (),
-                            };
-
+                            if action == ConnectionAction::Disconnect {
+                                break;
+                            }
                             results = new_results;
                         }
                     }
@@ -222,8 +220,11 @@ impl Connection {
                     }
                 };
 
-                if new_state.is_some() {
-                    self.state = new_state.unwrap();
+                //if new_state.is_some() {
+                //    self.state = new_state.unwrap();
+                //}
+                if let Some(state) = new_state {
+                    self.state = state;
                 }
 
                 Ok(return_val)

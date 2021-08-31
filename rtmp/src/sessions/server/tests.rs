@@ -1876,7 +1876,7 @@ fn create_connect_message(
     };
 
     let timestamp = RtmpTimestamp::new(timestamp);
-    
+
     message.into_message_payload(timestamp, stream_id).unwrap()
 }
 
