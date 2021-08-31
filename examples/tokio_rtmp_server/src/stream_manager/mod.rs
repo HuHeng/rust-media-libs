@@ -277,7 +277,7 @@ impl<'a> StreamManager<'a> {
         let connection_ids = self
             .players_by_key
             .entry(key.clone())
-            .or_insert(HashMap::new());
+            .or_insert_with(HashMap::new);
         connection_ids.insert(connection_id, PlayerDetails::new(connection_id));
         self.key_by_connection_id.insert(connection_id, key.clone());
 
@@ -362,7 +362,7 @@ impl<'a> StreamManager<'a> {
         }
 
         if let Some(players) = self.players_by_key.get(key.as_str()) {
-            for (player_id, _) in players {
+            for player_id in players.keys() {
                 let sender = match self.sender_by_connection_id.get_mut(player_id) {
                     Some(x) => x,
                     None => return,
@@ -448,7 +448,7 @@ impl<'a> StreamManager<'a> {
         details.metadata = Some(metadata.clone());
 
         if let Some(players) = self.players_by_key.get(key.as_str()) {
-            for (player_id, _) in players {
+            for player_id in players.keys() {
                 let sender = match self.sender_by_connection_id.get_mut(player_id) {
                     Some(x) => x,
                     None => return,

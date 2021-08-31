@@ -45,8 +45,9 @@ where
 /// Sends a message over an unbounded receiver and returns true if the message was sent
 /// or false if the channel has been closed.
 fn send<T>(sender: &UnboundedSender<T>, message: T) -> bool {
-    match sender.send(message) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    sender.send(message).is_ok()
+    //match sender.send(message) {
+    //    Ok(_) => true,
+    //    Err(_) => false,
+    //}
 }
