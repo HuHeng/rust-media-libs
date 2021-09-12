@@ -1,11 +1,9 @@
 use super::chunk_header::{ChunkHeader, ChunkHeaderFormat};
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-use bytes::{BufMut, BytesMut};
+use bytes::{Buf, BufMut, BytesMut};
 use chunk_io::{ChunkDeserializationError, ChunkDeserializationErrorKind};
 use messages::MessagePayload;
 use std::cmp::min;
 use std::collections::HashMap;
-use std::io::Cursor;
 use std::mem;
 
 const INITIAL_MAX_CHUNK_SIZE: usize = 128;
@@ -232,7 +230,7 @@ impl ChunkDeserializer {
             },
         };
 
-        let _ = self.buffer.split_to(next_index as usize);
+        self.buffer.advance(next_index as usize);
         self.current_stage = ParseStage::InitialTimestamp;
         Ok(ParseStageResult::Success)
     }
@@ -261,9 +259,11 @@ impl ChunkDeserializer {
 
         let timestamp;
         {
-            let bytes = self.buffer.split_to(3);
-            let mut cursor = Cursor::new(bytes);
-            timestamp = cursor.read_u24::<BigEndian>()?;
+            //let bytes = self.buffer.split_to(3);
+            //let mut cursor = Cursor::new(bytes);
+            //timestamp = cursor.read_u24::<BigEndian>()?;
+            timestamp = (self.buffer[0] as u32) << 16 | (self.buffer[1] as u32) << 8 | (self.buffer[2] as u32);
+            self.buffer.advance(3);
         }
 
         if self.current_header_format == ChunkHeaderFormat::Full {
@@ -294,9 +294,11 @@ impl ChunkDeserializer {
 
         let length;
         {
-            let bytes = self.buffer.split_to(3);
-            let mut cursor = Cursor::new(bytes);
-            length = cursor.read_u24::<BigEndian>()?;
+            //let bytes = self.buffer.split_to(3);
+            //let mut cursor = Cursor::new(bytes);
+            //length = cursor.read_u24::<BigEndian>()?;
+            length = (self.buffer[0] as u32) << 16 | (self.buffer[1] as u32) << 8 | (self.buffer[2] as u32);
+            self.buffer.advance(3);
         }
 
         self.current_header.message_length = length;
@@ -317,7 +319,8 @@ impl ChunkDeserializer {
         }
 
         self.current_header.message_type_id = self.buffer[0];
-        let _ = self.buffer.split_to(1);
+        //let _ = self.buffer.split_to(1);
+        self.buffer.advance(1);
         self.current_stage = ParseStage::MessageStreamId;
         Ok(ParseStageResult::Success)
     }
@@ -334,9 +337,10 @@ impl ChunkDeserializer {
 
         let stream_id;
         {
-            let bytes = self.buffer.split_to(4);
-            let mut cursor = Cursor::new(bytes);
-            stream_id = cursor.read_u32::<LittleEndian>()?;
+            //let bytes = self.buffer.split_to(4);
+            //let mut cursor = Cursor::new(bytes);
+            //stream_id = cursor.read_u32::<LittleEndian>()?;
+            stream_id = self.buffer.get_u32_le();
         }
 
         self.current_header.message_stream_id = stream_id;
@@ -356,9 +360,10 @@ impl ChunkDeserializer {
 
         let timestamp;
         {
-            let bytes = self.buffer.split_to(4);
-            let mut cursor = Cursor::new(bytes);
-            timestamp = cursor.read_u32::<BigEndian>()?;
+            //let bytes = self.buffer.split_to(4);
+            //let mut cursor = Cursor::new(bytes);
+            //timestamp = cursor.read_u32::<BigEndian>()?;
+            timestamp = self.buffer.get_u32();
         }
 
         // If the type 3 chunk is not the first chunk of a message, we just ignore it's extended timestamp because the timestamp of this message was already deserialized.
@@ -400,8 +405,9 @@ impl ChunkDeserializer {
             self.current_payload_data.reserve(capacity_needed);
         }
 
-        let bytes = self.buffer.split_to(length as usize);
-        self.current_payload_data.extend_from_slice(&bytes[..]);
+        //let bytes = self.buffer.split_to(length as usize);
+        self.current_payload_data.extend_from_slice(&self.buffer[..length]);
+        self.buffer.advance(length);
 
         // Check if this completes the message
         if self.current_payload_data.len() == self.current_header.message_length as usize {
