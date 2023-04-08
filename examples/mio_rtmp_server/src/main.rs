@@ -25,7 +25,7 @@ const SERVER: Token = Token(std::usize::MAX - 1);
 type ClosedTokens = HashSet<usize>;
 enum EventResult {
     None,
-    ReadResult(ReadResult),
+    ReadResult(Box<ReadResult>),
     DisconnectConnection,
 }
 
@@ -74,8 +74,8 @@ fn main() {
         );
 
         let mut pull_host = pull.host.clone();
-        if !pull_host.contains(":") {
-            pull_host = pull_host + ":1935";
+        if !pull_host.contains(':') {
+            pull_host += ":1935";
         }
 
         let addr = SocketAddr::from_str(&pull_host).unwrap();
@@ -129,7 +129,7 @@ fn main() {
                     match process_event(&event.readiness(), &mut connections, token, &mut poll) {
                         EventResult::None => (),
                         EventResult::ReadResult(result) => {
-                            match result {
+                            match *result {
                                 ReadResult::HandshakingInProgress => (),
                                 ReadResult::NoBytesReceived => (),
                                 ReadResult::BytesReceived { buffer, byte_count } => {
@@ -180,10 +180,8 @@ fn main() {
 
         if outer_elapsed.as_secs() >= 10 {
             let seconds_since_start = outer_started_at.elapsed().unwrap().as_secs();
-            let seconds_doing_work =
-                (total_ns as f64) / (1000 as f64) / (1000 as f64) / (1000 as f64);
-            let percentage_doing_work =
-                (seconds_doing_work / seconds_since_start as f64) * 100 as f64;
+            let seconds_doing_work = (total_ns as f64) / 1000_f64 / 1000_f64 / 1000_f64;
+            let percentage_doing_work = (seconds_doing_work / seconds_since_start as f64) * 100_f64;
             println!("Spent {} ms ({}% of time) doing work over {} seconds (avg {} microseconds per iteration)",
                      total_ns / 1000 / 1000,
                      percentage_doing_work as u32,
@@ -203,25 +201,23 @@ fn get_app_options() -> AppOptions {
     let matches = App::from_yaml(yaml).get_matches();
 
     let log_io = matches.is_present("log-io");
-    let pull_options = match matches.subcommand_matches("pull") {
-        None => None,
-        Some(pull_matches) => Some(PullOptions {
+    let pull_options = matches
+        .subcommand_matches("pull")
+        .map(|pull_matches| PullOptions {
             host: pull_matches.value_of("host").unwrap().to_string(),
             app: pull_matches.value_of("app").unwrap().to_string(),
             stream: pull_matches.value_of("stream").unwrap().to_string(),
             target: pull_matches.value_of("target").unwrap().to_string(),
-        }),
-    };
+        });
 
-    let push_options = match matches.subcommand_matches("push") {
-        None => None,
-        Some(push_matches) => Some(PushOptions {
+    let push_options = matches
+        .subcommand_matches("push")
+        .map(|push_matches| PushOptions {
             host: push_matches.value_of("host").unwrap().to_string(),
             app: push_matches.value_of("app").unwrap().to_string(),
             source_stream: push_matches.value_of("source_stream").unwrap().to_string(),
             target_stream: push_matches.value_of("target_stream").unwrap().to_string(),
-        }),
-    };
+        });
 
     let app_options = AppOptions {
         pull: pull_options,
@@ -256,7 +252,7 @@ fn process_event(
 
     if event.is_readable() {
         match connection.readable(poll) {
-            Ok(result) => return EventResult::ReadResult(result),
+            Ok(result) => return EventResult::ReadResult(Box::new(result)),
             Err(ConnectionError::SocketClosed) => return EventResult::DisconnectConnection,
             Err(x) => {
                 println!("Error occurred: {:?}", x);
@@ -293,11 +289,11 @@ fn handle_read_bytes(
             ServerResult::OutboundPacket {
                 target_connection_id,
                 packet,
-            } => match connections.get_mut(target_connection_id) {
-                Some(connection) => connection.enqueue_packet(poll, packet).unwrap(),
-                None => (),
-            },
-
+            } => {
+                if let Some(connection) = connections.get_mut(target_connection_id) {
+                    connection.enqueue_packet(poll, packet).unwrap()
+                }
+            }
             ServerResult::DisconnectConnection { connection_id } => {
                 closed_tokens.insert(connection_id);
             }
@@ -310,8 +306,8 @@ fn handle_read_bytes(
                     );
 
                     let mut push_host = push.host.clone();
-                    if !push_host.contains(":") {
-                        push_host = push_host + ":1935";
+                    if !push_host.contains(':') {
+                        push_host += ":1935";
                     }
 
                     let addr = SocketAddr::from_str(&push_host).unwrap();

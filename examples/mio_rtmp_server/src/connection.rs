@@ -167,20 +167,19 @@ impl Connection {
                     },
                 };
 
-                match read_result {
-                    ReadResult::BytesReceived {
-                        buffer: read_buffer,
-                        byte_count,
-                    } => match self.debug_log_files {
+                if let ReadResult::BytesReceived {
+                    buffer: read_buffer,
+                    byte_count,
+                } = read_result
+                {
+                    match self.debug_log_files {
                         None => (),
                         Some(ref mut logs) => {
                             logs.rtmp_input_file
-                                .write(&read_buffer[..byte_count])
+                                .write_all(&read_buffer[..byte_count])
                                 .unwrap();
                         }
-                    },
-
-                    _ => (),
+                    }
                 }
 
                 self.register(poll)?;
@@ -198,7 +197,7 @@ impl Connection {
                         "Failed to send buffer for {:?} with error {}",
                         self.token, error
                     );
-                    return Err(ConnectionError::IoError(error));
+                    Err(ConnectionError::IoError(error))
                 }
             }
         }
@@ -226,7 +225,7 @@ impl Connection {
                     match self.debug_log_files {
                         None => (),
                         Some(ref mut logs) => {
-                            logs.rtmp_output_file.write(&bytes).unwrap();
+                            logs.rtmp_output_file.write_all(&bytes).unwrap();
                         }
                     }
                 }
@@ -290,7 +289,7 @@ impl Connection {
 
         match result {
             HandshakeProcessResult::InProgress { response_bytes } => {
-                if response_bytes.len() > 0 {
+                if !response_bytes.is_empty() {
                     self.enqueue_response(poll, response_bytes)?;
                 }
 
@@ -302,7 +301,7 @@ impl Connection {
                 remaining_bytes,
             } => {
                 println!("Handshake successful!");
-                if response_bytes.len() > 0 {
+                if !response_bytes.is_empty() {
                     self.enqueue_response(poll, response_bytes)?;
                 }
 
