@@ -233,7 +233,7 @@ impl Connection {
             ConnectionMessage::RequestDenied { request_id: _ } => {
                 println!("Connection {}: Request denied", self.id);
 
-                return match &self.state {
+                match &self.state {
                     State::PlaybackRequested { .. } => {
                         Ok((Vec::new(), ConnectionAction::Disconnect))
                     }
@@ -246,7 +246,7 @@ impl Connection {
                         eprintln!("Connection {}: Invalid state of {:?}", self.id, self.state);
                         Ok((Vec::new(), ConnectionAction::Disconnect))
                     }
-                };
+                }
             }
 
             ConnectionMessage::NewVideoData {
@@ -254,7 +254,7 @@ impl Connection {
                 data,
                 can_be_dropped,
             } => {
-                return match &self.state {
+                match &self.state {
                     State::Playing { stream_id, .. } => {
                         let packet = self
                             .session
@@ -279,7 +279,7 @@ impl Connection {
                 data,
                 can_be_dropped,
             } => {
-                return match &self.state {
+                match &self.state {
                     State::Playing { stream_id, .. } => {
                         let packet = self
                             .session
@@ -300,7 +300,7 @@ impl Connection {
             }
 
             ConnectionMessage::NewMetadata { metadata } => {
-                return match &self.state {
+                match &self.state {
                     State::Playing { stream_id, .. } => {
                         let packet = self
                             .session
