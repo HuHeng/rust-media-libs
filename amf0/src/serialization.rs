@@ -35,7 +35,7 @@ fn serialize_value(value: &Amf0Value, bytes: &mut Vec<u8>) -> Result<(), Amf0Ser
         Amf0Value::Number(ref val) => serialize_number(val, bytes),
         Amf0Value::Utf8String(ref val) => serialize_string(val, bytes),
         Amf0Value::Object(ref val) => serialize_object(val, bytes),
-        Amf0Value::StrictArray(ref val) => serialize_strict_array(&val, bytes),
+        Amf0Value::StrictArray(ref val) => serialize_strict_array(val, bytes),
     }
 }
 
@@ -96,7 +96,7 @@ fn serialize_strict_array(
     bytes.write_u32::<BigEndian>(array.len() as u32)?;
 
     for value in array {
-        serialize_value(&value, bytes)?;
+        serialize_value(value, bytes)?;
     }
 
     Ok(())

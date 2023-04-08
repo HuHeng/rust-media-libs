@@ -375,8 +375,8 @@ impl ChunkDeserializer {
         let mut length = self.current_header.message_length as usize;
         let current_payload_length = self.current_payload_data.len();
         let remaining_bytes = length - current_payload_length;
-        if length > self.max_chunk_size as usize {
-            length = min(remaining_bytes, self.max_chunk_size as usize);
+        if length > self.max_chunk_size {
+            length = min(remaining_bytes, self.max_chunk_size);
         }
 
         if self.buffer.len() < length {
@@ -394,7 +394,7 @@ impl ChunkDeserializer {
             self.current_payload_data.reserve(capacity_needed);
         }
 
-        let bytes = self.buffer.split_to(length as usize);
+        let bytes = self.buffer.split_to(length);
         self.current_payload_data.extend_from_slice(&bytes[..]);
 
         // Check if this completes the message
@@ -1067,7 +1067,7 @@ mod tests {
         if csid < 64 {
             cursor.write_u8((csid as u8) | 0b01000000).unwrap();
         } else if csid < 319 {
-            cursor.write_u8(0_u8 | 0b01000000).unwrap();
+            cursor.write_u8(0b01000000).unwrap();
             cursor.write_u8((csid - 64) as u8).unwrap();
         } else {
             cursor.write_u8(1_u8 | 0b01000000).unwrap();
@@ -1093,7 +1093,7 @@ mod tests {
         if csid < 64 {
             cursor.write_u8((csid as u8) | 0b10000000).unwrap();
         } else if csid < 319 {
-            cursor.write_u8(0_u8 | 0b10000000).unwrap();
+            cursor.write_u8(0b10000000).unwrap();
             cursor.write_u8((csid - 64) as u8).unwrap();
         } else {
             cursor.write_u8(1_u8 | 0b10000000).unwrap();
@@ -1122,14 +1122,14 @@ mod tests {
         if csid < 64 {
             cursor.write_u8((csid as u8) | 0b11000000).unwrap();
         } else if csid < 319 {
-            cursor.write_u8(0_u8 | 0b11000000).unwrap();
+            cursor.write_u8(0b11000000).unwrap();
             cursor.write_u8((csid - 64) as u8).unwrap();
         } else {
             cursor.write_u8(1_u8 | 0b11000000).unwrap();
             cursor.write_u16::<BigEndian>((csid - 64) as u16).unwrap();
         }
 
-        if option_extended_timestamp != None {
+        if option_extended_timestamp.is_some() {
             assert_eq!(
                 option_extended_timestamp.unwrap() >= MAX_INITIAL_TIMESTAMP,
                 true,

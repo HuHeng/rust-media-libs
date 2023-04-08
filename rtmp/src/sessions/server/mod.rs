@@ -501,16 +501,13 @@ impl ServerSession {
         };
 
         let app_name = match properties.remove("app") {
-            Some(value) => match value {
-                Amf0Value::Utf8String(mut app) => {
-                    if app.ends_with('/') {
-                        app.pop();
-                    }
-                    app
+            Some(Amf0Value::Utf8String(mut app)) => {
+                if app.ends_with('/') {
+                    app.pop();
                 }
-                _ => return Err(ServerSessionError::NoAppNameForConnectionRequest),
-            },
-            None => return Err(ServerSessionError::NoAppNameForConnectionRequest),
+                app
+            }
+            _ => return Err(ServerSessionError::NoAppNameForConnectionRequest),
         };
 
         self.object_encoding = match properties.remove("objectEncoding") {

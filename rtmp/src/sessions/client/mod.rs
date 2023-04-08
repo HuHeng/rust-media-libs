@@ -726,7 +726,7 @@ impl ClientSession {
             }
 
             OutstandingTransaction::CreateStream { purpose } => {
-                if additional_args.len() == 0 {
+                if additional_args.is_empty() {
                     return Err(ClientSessionError::CreateStreamResponseHadNoStreamNumber);
                 }
 

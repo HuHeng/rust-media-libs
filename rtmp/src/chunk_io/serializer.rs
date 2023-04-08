@@ -359,7 +359,7 @@ mod tests {
         let mut cursor = Cursor::new(packet.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            6 | 0b00000000,
+            6,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -404,7 +404,7 @@ mod tests {
         let mut cursor = Cursor::new(packet.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            6 | 0b00000000,
+            6,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -701,7 +701,7 @@ mod tests {
         let mut cursor = Cursor::new(packet.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            2 | 0b00000000,
+            2,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -754,7 +754,7 @@ mod tests {
         let mut cursor = Cursor::new(packet.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            6 | 0b00000000,
+            6,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -814,7 +814,7 @@ mod tests {
         let mut cursor = Cursor::new(packet.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            6 | 0b00000000,
+            6,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -916,7 +916,7 @@ mod tests {
         let mut cursor = Cursor::new(packet.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            6 | 0b00000000,
+            6,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -979,7 +979,7 @@ mod tests {
         let mut cursor = Cursor::new(packet.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            2 | 0b00000000,
+            2,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -1027,7 +1027,7 @@ mod tests {
         let mut cursor = Cursor::new(packet1.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            6 | 0b00000000,
+            6,
             "Unexpected csid value"
         );
         assert_eq!(
@@ -1064,7 +1064,7 @@ mod tests {
         let mut cursor = Cursor::new(packet2.bytes);
         assert_eq!(
             cursor.read_u8().unwrap(),
-            6 | 0b00000000,
+            6,
             "Unexpected 2nd csid value"
         );
         assert_eq!(

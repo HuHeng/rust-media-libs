@@ -19,7 +19,7 @@ fn new_session_and_successful_connect_creates_set_chunk_size_message() {
     consume_results(&mut deserializer, initial_results);
 
     perform_successful_connect(
-        app_name.clone(),
+        app_name,
         &mut session,
         &mut serializer,
         &mut deserializer,
@@ -241,7 +241,7 @@ fn error_thrown_when_connect_request_made_after_successful_connection() {
     let results = session.handle_input(&response.bytes[..]).unwrap();
     consume_results(&mut deserializer, results);
 
-    let error = session.request_connection(app_name.clone()).unwrap_err();
+    let error = session.request_connection(app_name).unwrap_err();
     match error {
         ClientSessionError::CantConnectWhileAlreadyConnected => (),
         x => panic!(

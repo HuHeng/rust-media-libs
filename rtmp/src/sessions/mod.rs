@@ -136,3 +136,9 @@ impl StreamMetadata {
         }
     }
 }
+
+impl Default for StreamMetadata {
+    fn default() -> Self {
+        Self::new()
+    }
+}
