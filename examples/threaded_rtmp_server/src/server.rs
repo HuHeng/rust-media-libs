@@ -81,18 +81,16 @@ impl Server {
     ) -> Result<Vec<ServerResult>, String> {
         let mut server_results = Vec::new();
 
-        if !self.connection_to_client_map.contains_key(&connection_id) {
+        //if !self.connection_to_client_map.contains_key(&connection_id) {
+        if let std::collections::hash_map::Entry::Vacant(e) =
+            self.connection_to_client_map.entry(connection_id)
+        {
             let config = ServerSessionConfig::new();
             let (session, initial_session_results) = match ServerSession::new(config) {
                 Ok(results) => results,
                 Err(error) => return Err(error.to_string()),
             };
 
-            self.handle_session_results(
-                connection_id,
-                initial_session_results,
-                &mut server_results,
-            );
             let client = Client {
                 session,
                 connection_id,
@@ -101,8 +99,12 @@ impl Server {
             };
 
             let client_id = Some(self.clients.insert(client));
-            self.connection_to_client_map
-                .insert(connection_id, client_id.unwrap());
+            e.insert(client_id.unwrap());
+            self.handle_session_results(
+                connection_id,
+                initial_session_results,
+                &mut server_results,
+            );
         }
 
         let client_results: Vec<ServerSessionResult>;
@@ -437,7 +439,7 @@ impl Server {
 
             let channel = self
                 .channels
-                .entry(stream_key.clone())
+                .entry(stream_key)
                 .or_insert(MediaChannel {
                     publishing_client_id: None,
                     watching_client_ids: HashSet::new(),
@@ -455,7 +457,7 @@ impl Server {
                     match channel.metadata {
                         None => (),
                         Some(ref metadata) => {
-                            let packet = match client.session.send_metadata(stream_id, &metadata) {
+                            let packet = match client.session.send_metadata(stream_id, metadata) {
                                 Ok(packet) => packet,
                                 Err(error) => {
                                     println!("Error occurred sending existing metadata to new client: {:?}", error);
@@ -537,8 +539,6 @@ impl Server {
                 server_results.push(ServerResult::DisconnectConnection {
                     connection_id: requested_connection_id,
                 });
-
-                return;
             }
 
             Ok(results) => {
@@ -657,7 +657,7 @@ impl Server {
                 ReceivedDataType::Audio => client.session.send_audio_data(
                     active_stream_id,
                     data.clone(),
-                    timestamp.clone(),
+                    timestamp,
                     true,
                 ),
                 ReceivedDataType::Video => {
@@ -668,7 +668,7 @@ impl Server {
                     client.session.send_video_data(
                         active_stream_id,
                         data.clone(),
-                        timestamp.clone(),
+                        timestamp,
                         true,
                     )
                 }
@@ -715,15 +715,15 @@ impl Server {
 
 fn is_video_sequence_header(data: Bytes) -> bool {
     // This is assuming h264.
-    return data.len() >= 2 && data[0] == 0x17 && data[1] == 0x00;
+    data.len() >= 2 && data[0] == 0x17 && data[1] == 0x00
 }
 
 fn is_audio_sequence_header(data: Bytes) -> bool {
     // This is assuming aac
-    return data.len() >= 2 && data[0] == 0xaf && data[1] == 0x00;
+    data.len() >= 2 && data[0] == 0xaf && data[1] == 0x00
 }
 
 fn is_video_keyframe(data: Bytes) -> bool {
     // assumings h264
-    return data.len() >= 2 && data[0] == 0x17 && data[1] != 0x00; // 0x00 is the sequence header, don't count that for now
+    data.len() >= 2 && data[0] == 0x17 && data[1] != 0x00 // 0x00 is the sequence header, don't count that for now
 }

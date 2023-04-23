@@ -87,7 +87,7 @@ impl Connection {
 
         match result {
             HandshakeProcessResult::InProgress { response_bytes } => {
-                if response_bytes.len() > 0 {
+                if !response_bytes.is_empty() {
                     self.write(response_bytes);
                 }
 
@@ -99,7 +99,7 @@ impl Connection {
                 remaining_bytes,
             } => {
                 println!("Handshake successful!");
-                if response_bytes.len() > 0 {
+                if !response_bytes.is_empty() {
                     self.write(response_bytes);
                 }
 
@@ -164,16 +164,14 @@ fn start_result_reader(sender: Sender<ReadResult>, socket: &TcpStream) {
                 Ok(0) => return, // socket closed
                 Ok(read_count) => {
                     let mut send_buffer = [0; BUFFER_SIZE];
-                    for x in 0..read_count {
-                        send_buffer[x] = buffer[x];
-                    }
+                    send_buffer[..read_count].copy_from_slice(&buffer[..read_count]);
 
                     let result = ReadResult::BytesReceived {
                         buffer: send_buffer,
                         byte_count: read_count,
                     };
 
-                    if let Err(_) = sender.send(result) {
+                    if sender.send(result).is_err() {
                         // receiver has been dropped
                         return;
                     }

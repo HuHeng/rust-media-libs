@@ -15,7 +15,7 @@ use std::thread;
 
 fn main() {
     let address = "0.0.0.0:1935";
-    let listener = TcpListener::bind(&address).unwrap();
+    let listener = TcpListener::bind(address).unwrap();
 
     let (stream_sender, stream_receiver) = channel();
     thread::spawn(|| handle_connections(stream_receiver));
